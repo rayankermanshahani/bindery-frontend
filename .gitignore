@@ -26,3 +26,6 @@ dist-ssr
 # env files
 .env
 env/
+
+# notes
+bindery-dev-plan.md

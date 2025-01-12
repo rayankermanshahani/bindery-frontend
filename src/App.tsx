@@ -6,36 +6,46 @@ import {
   Route,
   Navigate,
 } from "react-router-dom";
-import { AuthProvider, useAuth } from "./context/AuthContext";
+import { AuthProvider } from "./context/AuthContext";
 import Layout from "./components/Layout/Layout";
 import Login from "./components/Login";
-
-const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
-  const { token } = useAuth();
-  return token ? <>{children}</> : <Navigate to="/login" />;
-};
+import Profile from "./components/Profile";
+import DefaultRoute from "./components/DefaultRoute";
+import PublicRoute from "./components/PublicRoute";
+import PrivateRoute from "./components/PrivateRoute";
 
 const App: React.FC = () => {
   return (
     <AuthProvider>
       <Router>
         <Routes>
-          <Route path="/login" element={<Login />} />
+          {/* Default Route */}
+          <Route path="/" element={<DefaultRoute />} />
+
+          {/* Login Route */}
           <Route
-            path="/"
+            path="/login"
+            element={
+              <PublicRoute>
+                <Login />
+              </PublicRoute>
+            }
+          />
+
+          {/* Profile Route */}
+          <Route
+            path="/profile"
             element={
               <PrivateRoute>
                 <Layout>
-                  <div className="text-center">
-                    <h1 className="text-2xl font-bold">Welcome to Bindery</h1>
-                    <p className="mt-2">Your digital book club awaits!</p>
-                  </div>
+                  <Profile />
                 </Layout>
               </PrivateRoute>
             }
           />
+
+          {/* Catch-All Route */}
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Router>
     </AuthProvider>

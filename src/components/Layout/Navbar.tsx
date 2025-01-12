@@ -1,10 +1,16 @@
 // src/components/Layout/Navbar.tsx
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 
 const Navbar: React.FC = () => {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
 
   return (
     <nav className="bg-white shadow">
@@ -19,16 +25,16 @@ const Navbar: React.FC = () => {
           {user && (
             <div className="flex items-center">
               <Link
-                to="/clubs"
+                to="/profile"
                 className="px-3 py-2 text-gray-700 hover:text-gray-900"
               >
-                My Clubs
+                Profile
               </Link>
               <div className="ml-4 relative flex-shrink-0">
                 <div className="flex items-center">
                   <span className="text-gray-700 mr-4">{user.username}</span>
                   <button
-                    onClick={logout}
+                    onClick={handleLogout}
                     className="px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900"
                   >
                     Logout
@@ -41,6 +47,7 @@ const Navbar: React.FC = () => {
       </div>
     </nav>
   );
+
 };
 
 export default Navbar;

@@ -5,13 +5,15 @@ import { User, AuthState } from "../types/auth";
 interface AuthContextType extends AuthState {
   login: (token: string, user: User) => void;
   logout: () => void;
+  setUser: (user: User) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 type AuthAction =
   | { type: "LOGIN"; payload: { token: string; user: User } }
-  | { type: "LOGOUT" };
+  | { type: "LOGOUT" }
+  | { type: "SET_USER"; payload: { user: User } };
 
 const authReducer = (state: AuthState, action: AuthAction): AuthState => {
   switch (action.type) {
@@ -24,6 +26,11 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
       return {
         user: null,
         token: null,
+      };
+    case "SET_USER":
+      return {
+        ...state,
+        user: action.payload.user,
       };
     default:
       return state;
@@ -54,8 +61,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     dispatch({ type: "LOGOUT" });
   };
 
+  const setUser = (user: User) => {
+    dispatch({ type: "SET_USER", payload: { user } });
+  };
+
   return (
-    <AuthContext.Provider value={{ ...state, login, logout }}>
+    <AuthContext.Provider value={{ ...state, login, logout, setUser }}>
       {children}
     </AuthContext.Provider>
   );

@@ -2,6 +2,7 @@
 import React, { useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 declare global {
   interface Window {
@@ -18,6 +19,7 @@ declare global {
 
 const Login: React.FC = () => {
   const { login } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const initializeGoogleSignIn = () => {
@@ -65,6 +67,9 @@ const Login: React.FC = () => {
         created_at: new Date().toISOString(), // TODO: update this when we fetch the full profile
       });
       console.log("Login successful, auth context updated"); // TODO: remove debugging log
+
+      // redirect to profile page upon successful login
+      navigate("/profile");
     } catch (error) {
       console.error("Login error:", error);
       if (axios.isAxiosError(error)) {
@@ -78,11 +83,13 @@ const Login: React.FC = () => {
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow">
         <div>
-          <h2 className="mt-6 text-center text-4xl font-extrabold text-gray-900">
-            Welcome to Bindery
+          <h2 className="mt-6 text-center text-5xl font-extrabold text-gray-900">
+            Bindery
           </h2>
           <p className="mt-2 text-center text-lg text-gray-600">
-            Your digital book club platform
+            a little place for books
+            <br />
+            (and the people that read them)
           </p>
         </div>
         <div className="mt-8 flex justify-center">
