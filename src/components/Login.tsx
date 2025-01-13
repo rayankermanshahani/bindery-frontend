@@ -88,8 +88,6 @@ const Login: React.FC = () => {
           </h2>
           <p className="mt-2 text-center text-lg text-gray-600">
             a little place for books
-            <br />
-            (and the people that read them)
           </p>
         </div>
         <div className="mt-8 flex justify-center">

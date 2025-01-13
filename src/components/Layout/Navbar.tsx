@@ -26,28 +26,22 @@ const Navbar: React.FC = () => {
             <div className="flex items-center">
               <Link
                 to="/profile"
-                className="px-3 py-2 text-gray-700 hover:text-gray-900"
+                className="px-3 py-2 text-large font-medium text-gray-600 hover:text-gray-900"
               >
                 Profile
               </Link>
-              <div className="ml-4 relative flex-shrink-0">
-                <div className="flex items-center">
-                  <span className="text-gray-700 mr-4">{user.username}</span>
-                  <button
-                    onClick={handleLogout}
-                    className="px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900"
-                  >
-                    Logout
-                  </button>
-                </div>
-              </div>
+              <button
+                onClick={handleLogout}
+                className="px-3 py-2 text-large font-medium text-gray-600 hover:text-gray-900"
+              >
+                Logout
+              </button>
             </div>
           )}
         </div>
       </div>
     </nav>
   );
-
 };
 
 export default Navbar;
