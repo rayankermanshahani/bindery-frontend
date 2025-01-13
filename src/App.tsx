@@ -10,6 +10,7 @@ import { AuthProvider } from "./context/AuthContext";
 import Layout from "./components/Layout/Layout";
 import Login from "./components/Login";
 import Profile from "./components/Profile";
+import Home from "./components/Home";
 import DefaultRoute from "./components/DefaultRoute";
 import PublicRoute from "./components/PublicRoute";
 import PrivateRoute from "./components/PrivateRoute";
@@ -29,6 +30,18 @@ const App: React.FC = () => {
               <PublicRoute>
                 <Login />
               </PublicRoute>
+            }
+          />
+
+          {/* Home Route */}
+          <Route
+            path="/home"
+            element={
+              <PrivateRoute>
+                <Layout>
+                  <Home />
+                </Layout>
+              </PrivateRoute>
             }
           />
 

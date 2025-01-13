@@ -17,7 +17,7 @@ const Navbar: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex">
-            <Link to="/" className="flex items-center">
+            <Link to={user ? "/home" : "/"} className="flex items-center">
               <span className="text-xl font-bold text-gray-800">Bindery</span>
             </Link>
           </div>
@@ -32,7 +32,7 @@ const Navbar: React.FC = () => {
               </Link>
               <button
                 onClick={handleLogout}
-                className="px-3 py-2 text-large font-medium text-gray-600 hover:text-gray-900"
+                className="ml-2 px-3 py-2 text-large font-medium text-gray-600 hover:text-gray-900"
               >
                 Logout
               </button>

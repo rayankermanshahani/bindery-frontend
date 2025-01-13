@@ -23,10 +23,6 @@ const Login: React.FC = () => {
 
   useEffect(() => {
     const initializeGoogleSignIn = () => {
-      console.log(
-        "Initializing with client ID:",
-        import.meta.env.VITE_GOOGLE_CLIENT_ID,
-      ); // TODO: remove debugging log
       window.google.accounts.id.initialize({
         client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
         callback: handleCredentialResponse,
@@ -51,9 +47,7 @@ const Login: React.FC = () => {
   }, []);
 
   const handleCredentialResponse = async (response: any) => {
-    console.log("Google response received:", response); // TODO: remove debugging log
     try {
-      console.log("Sending credential to backend:", response.credential); // TODO: remove debugging log
       const res = await axios.post(
         `${import.meta.env.VITE_API_URL}/auth/login`,
         {
@@ -64,12 +58,11 @@ const Login: React.FC = () => {
       login(res.data.token, {
         id: res.data.user_id,
         username: res.data.username,
-        created_at: new Date().toISOString(), // TODO: update this when we fetch the full profile
+        created_at: res.data.created_at,
       });
-      console.log("Login successful, auth context updated"); // TODO: remove debugging log
 
       // redirect to profile page upon successful login
-      navigate("/profile");
+      navigate("/home");
     } catch (error) {
       console.error("Login error:", error);
       if (axios.isAxiosError(error)) {

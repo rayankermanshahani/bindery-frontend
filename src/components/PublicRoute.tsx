@@ -6,7 +6,7 @@ import { Navigate } from "react-router-dom";
 const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { token } = useAuth();
 
-  return token ? <Navigate to="/profile" replace /> : <>{children}</>;
+  return token ? <Navigate to="/home" replace /> : <>{children}</>;
 };
 
 export default PublicRoute;

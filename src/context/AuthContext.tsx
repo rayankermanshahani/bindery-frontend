@@ -1,6 +1,7 @@
 // src/context/AuthContext.tsx
 import React, { createContext, useContext, useReducer, useEffect } from "react";
 import { User, AuthState } from "../types/auth";
+import axios from "axios";
 
 interface AuthContextType extends AuthState {
   login: (token: string, user: User) => void;
@@ -48,6 +49,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   useEffect(() => {
     if (state.token) {
       localStorage.setItem("token", state.token);
+      axios // fetch user data from api
+        .get(`${import.meta.env.VITE_API_URL}/auth/profile`, {
+          headers: {
+            Authorization: `Bearer ${state.token}`,
+          },
+        })
+        .then((response) => {
+          const fetchedUser: User = {
+            id: response.data.id,
+            username: response.data.username,
+            created_at: response.data.created_at,
+          };
+          dispatch({ type: "SET_USER", payload: { user: fetchedUser } });
+        })
+        .catch((error) => {
+          console.error("Failed to fetch user data:", error);
+          dispatch({ type: "LOGOUT" }); // clear authentication if fetching fails
+        });
     } else {
       localStorage.removeItem("token");
     }

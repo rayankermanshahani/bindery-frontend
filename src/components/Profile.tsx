@@ -65,7 +65,7 @@ const Profile: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newUsername.trim()) {
-      setUpdateError("Username cannot be empty");
+      setUpdateError("Username cannot be empty.");
       return;
     }
 
@@ -174,7 +174,7 @@ const Profile: React.FC = () => {
         {new Date(profile.created_at).toLocaleDateString()}
       </div>
 
-      {/* Clubs Created - TODO: replace placeholder text with real clubs */}
+      {/* Clubs Created - Placeholder */}
       <div className="mb-4">
         <strong>Clubs Created:</strong>
         <ul className="mt-2 list-disc list-inside">

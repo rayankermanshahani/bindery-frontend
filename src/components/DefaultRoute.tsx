@@ -7,7 +7,7 @@ const DefaultRoute: React.FC = () => {
   const { token } = useAuth();
 
   return token ? (
-    <Navigate to="/profile" replace />
+    <Navigate to="/home" replace />
   ) : (
     <Navigate to="/login" replace />
   );
