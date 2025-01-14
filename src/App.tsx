@@ -14,6 +14,8 @@ import Home from "./components/Home";
 import DefaultRoute from "./components/DefaultRoute";
 import PublicRoute from "./components/PublicRoute";
 import PrivateRoute from "./components/PrivateRoute";
+import Clubs from "./components/Clubs";
+import ClubDashboard from "./components/ClubDashboard";
 
 const App: React.FC = () => {
   return (
@@ -52,6 +54,28 @@ const App: React.FC = () => {
               <PrivateRoute>
                 <Layout>
                   <Profile />
+                </Layout>
+              </PrivateRoute>
+            }
+          />
+
+          {/* Clubs Route */}
+          <Route
+            path="/clubs"
+            element={
+              <PrivateRoute>
+                <Layout>
+                  <Clubs />
+                </Layout>
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/clubs/:unique_id"
+            element={
+              <PrivateRoute>
+                <Layout>
+                  <ClubDashboard />
                 </Layout>
               </PrivateRoute>
             }
