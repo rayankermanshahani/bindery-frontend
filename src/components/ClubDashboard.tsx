@@ -11,11 +11,13 @@ const ClubDashboard: React.FC = () => {
   const navigate = useNavigate();
 
   const [creatorId, setCreatorId] = useState<number | null>(null);
+  const [creatorUsername, setCreatorUsername] = useState<string>("");
+  const [clubName, setClubName] = useState<string>("");
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const isCreator = creatorId === user?.id;
+  const isCreator = creatorUsername === user?.username;
 
   // fetch members
   const fetchMembers = async () => {
@@ -27,7 +29,6 @@ const ClubDashboard: React.FC = () => {
           headers: { Authorization: `Bearer ${token}` },
         },
       );
-      setCreatorId(res.data.creator_id);
       setMembers(res.data.members);
     } catch (err: any) {
       console.error(err);
@@ -37,8 +38,31 @@ const ClubDashboard: React.FC = () => {
     }
   };
 
+  // fetch club information
+  const fetchClubInfo = async () => {
+    try {
+      setLoading(true);
+      const clubRes = await axios.get(
+        `${import.meta.env.VITE_API_URL}/clubs/${unique_id}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+      // response include { unique_id, creator_username, name, created_at }
+      setCreatorId(clubRes.data.creator_id);
+      setCreatorUsername(clubRes.data.creator_username);
+      setClubName(clubRes.data.name);
+    } catch (err) {
+      console.error(err);
+      setError("Failed to fetch club details.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (token) {
+      fetchClubInfo();
       fetchMembers();
     }
   }, [token, unique_id]);
@@ -75,13 +99,13 @@ const ClubDashboard: React.FC = () => {
   };
 
   // handle ban user
-  const handleBan = async (userId: number) => {
+  const handleBan = async (member: Member) => {
     if (!unique_id) return;
-    if (!window.confirm(`Ban user #${userId}?`)) return;
+    if (!window.confirm(`Ban ${member.username}?`)) return;
     try {
       await axios.post(
         `${import.meta.env.VITE_API_URL}/clubs/${unique_id}/ban`,
-        { user_id: userId },
+        { user_id: member.id },
         { headers: { Authorization: `Bearer ${token}` } },
       );
       alert("User banned.");
@@ -102,8 +126,9 @@ const ClubDashboard: React.FC = () => {
 
   return (
     <div className="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow space-y-6">
-      <h2 className="text-2xl font-bold">Club Dashboard ({unique_id})</h2>
-
+      <h2 className="text-2xl font-bold">{clubName}</h2>
+      <p className="text-gray-600">Club ID: {unique_id}</p>
+      <p className="text-gray-600">Creator: {creatorUsername}</p>
       <div className="flex space-x-2">
         {isCreator ? (
           <button
@@ -139,12 +164,10 @@ const ClubDashboard: React.FC = () => {
                 key={m.id}
                 className="bg-gray-100 p-4 rounded flex justify-between items-center"
               >
-                <span>
-                  {m.username} (User #{m.id})
-                </span>
+                <span>{m.username}</span>
                 {isCreator && m.id !== user?.id && (
                   <button
-                    onClick={() => handleBan(m.id)}
+                    onClick={() => handleBan(m)}
                     className="px-3 py-1 bg-red-200 text-red-800 rounded"
                   >
                     Ban

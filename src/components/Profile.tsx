@@ -3,16 +3,23 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useAuth } from "../context/AuthContext";
 import { User } from "../types/auth";
+import { Club } from "../types/club";
 
 const Profile: React.FC = () => {
   const { token, setUser } = useAuth();
   const [profile, setProfile] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+
+  // for editing username
   const [editing, setEditing] = useState<boolean>(false);
   const [newUsername, setNewUsername] = useState<string>("");
   const [updateError, setUpdateError] = useState<string | null>(null);
   const [updating, setUpdating] = useState<boolean>(false);
+
+  // for user's created clubs
+  const [createdClubs, setCreatedClubs] = useState<Club[]>([]);
+  const [clubsError, setClubsError] = useState<string | null>(null);
 
   const fetchProfile = React.useCallback(async () => {
     if (!token) {
@@ -47,8 +54,25 @@ const Profile: React.FC = () => {
     }
   }, [token]);
 
+  const fetchCreatedClubs = async () => {
+    if (!token) return;
+    try {
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_URL}/clubs/created`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+      setCreatedClubs(res.data);
+    } catch (err) {
+      console.error("Error fetching created clubs:", err);
+      setClubsError("Failed to fetch clubs you created");
+    }
+  };
+
   useEffect(() => {
     fetchProfile();
+    fetchCreatedClubs();
   }, [fetchProfile]);
 
   const handleEdit = () => {
@@ -174,13 +198,21 @@ const Profile: React.FC = () => {
         {new Date(profile.created_at).toLocaleDateString()}
       </div>
 
-      {/* Clubs Created - Placeholder */}
+      {/* Clubs Created */}
       <div className="mb-4">
         <strong>Clubs Created:</strong>
-        <ul className="mt-2 list-disc list-inside">
-          <li className="text-gray-600">Club 1 (Coming Soon)</li>
-          <li className="text-gray-600">Club 2 (Coming Soon)</li>
-        </ul>
+        {clubsError && <p className="text-red-500">{clubsError}</p>}
+        {createdClubs.length === 0 ? (
+          <p className="text-gray-600">You haven't created any clubs yet.</p>
+        ) : (
+          <ul className="mt-2 list-disc list-inside">
+            {createdClubs.map((club) => (
+              <li key={club.unique_id} className="text-gray-600">
+                {club.name}
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </div>
   );

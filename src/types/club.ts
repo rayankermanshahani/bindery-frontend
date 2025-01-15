@@ -2,6 +2,7 @@
 export interface Club {
   unique_id: string;
   creator_id: string;
+  name: string;
   created_at: string;
 }
 

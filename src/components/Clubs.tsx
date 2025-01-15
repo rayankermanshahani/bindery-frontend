@@ -13,6 +13,7 @@ const Clubs: React.FC = () => {
 
   // create/join forms
   const [creating, setCreating] = useState<boolean>(false);
+  const [clubName, setClubName] = useState<string>("");
   const [joinId, setJoinId] = useState<string>("");
   const [joinError, setJoinError] = useState<string | null>(null);
 
@@ -42,16 +43,22 @@ const Clubs: React.FC = () => {
   }, [token]);
 
   // create new club
-  const handleCreateClub = async () => {
+  const handleCreateClub = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!clubName.trim()) {
+      alert("Please enter a club name");
+      return;
+    }
     try {
       setCreating(true);
       const response = await axios.post(
         `${import.meta.env.VITE_API_URL}/clubs`,
-        {},
+        { name: clubName },
         { headers: { Authorization: `Bearer ${token}` } },
       );
       alert("Club created! Unique ID: " + response.data.unique_id);
 
+      setClubName(""); // reset form
       fetchClubs(); // refresh list
     } catch (err: any) {
       console.error("Failed to create club:", err);
@@ -100,18 +107,25 @@ const Clubs: React.FC = () => {
 
   return (
     <div className="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow space-y-6">
-      <h2 className="text-2xl font-bold">My Clubs</h2>
+      <h2 className="text-2xl font-bold">New Clubs</h2>
 
       {/* Create club section */}
-      <div>
+      <form onSubmit={handleCreateClub} className="flex items-center space-x-2">
+        <input
+          type="text"
+          placeholder="Enter New Club Name"
+          value={clubName}
+          onChange={(e) => setClubName(e.target.value)}
+          className="border px-2 py-1 rounded"
+        />
         <button
-          onClick={handleCreateClub}
+          type="submit"
           disabled={creating}
           className="px-4 py-2 bg-blue-500 text-white rounded"
         >
           {creating ? "Creating..." : "Create New Club"}
         </button>
-      </div>
+      </form>
 
       {/* Join club form */}
       <form onSubmit={handleJoinClub} className="flex items-center space-x-2">
@@ -132,6 +146,7 @@ const Clubs: React.FC = () => {
       </form>
 
       {/* Club list */}
+      <h2 className="text-2xl font-bold">Current Clubs</h2>
       {clubs.length === 0 ? (
         <p className="text-gray-600">You are not part of any clubs yet.</p>
       ) : (
@@ -142,12 +157,7 @@ const Clubs: React.FC = () => {
               className="p-4 bg-gray-100 rounded flex justify-between"
             >
               <div>
-                <p>
-                  <strong>Club ID:</strong> {club.unique_id}
-                </p>
-                <p>
-                  <strong>Creator ID:</strong> {club.creator_id}
-                </p>
+                <p>{club.name}</p>
               </div>
               {/* Link to detail/management page */}
               <Link
