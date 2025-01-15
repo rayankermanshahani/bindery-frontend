@@ -4,18 +4,24 @@ import axios from "axios";
 import { useAuth } from "../context/AuthContext";
 import { useParams, useNavigate } from "react-router-dom";
 import { Member } from "../types/club";
+import ConfirmModal from "./ConfirmModal";
 
 const ClubDashboard: React.FC = () => {
+  // auth state
   const { token, user } = useAuth();
   const { unique_id } = useParams(); // from the route /clubs/:unique_id
   const navigate = useNavigate();
 
+  // club state
   const [creatorId, setCreatorId] = useState<number | null>(null);
   const [creatorUsername, setCreatorUsername] = useState<string>("");
   const [clubName, setClubName] = useState<string>("");
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // custom confirmation state
+  const [showLeaveModal, setShowLeaveModal] = useState<boolean>(false);
 
   const isCreator = creatorUsername === user?.username;
 
@@ -67,7 +73,7 @@ const ClubDashboard: React.FC = () => {
     }
   }, [token, unique_id]);
 
-  // handle leaving club
+  /*
   const handleLeave = async () => {
     if (!unique_id) return;
     try {
@@ -81,6 +87,31 @@ const ClubDashboard: React.FC = () => {
     } catch (err) {
       alert("Could not leave club.");
     }
+  };
+  */
+  // handle leaving club
+  const handleLeaveClick = () => {
+    setShowLeaveModal(true);
+  };
+
+  const confirmLeaveClub = async () => {
+    setShowLeaveModal(false);
+    if (!unique_id) return;
+    try {
+      await axios.post(
+        `${import.meta.env.VITE_API_URL}/clubs/${unique_id}/leave`,
+        {},
+        { headers: { Authorization: `Bearer  ${token}` } },
+      );
+      alert("You left the club");
+      navigate("/clubs");
+    } catch (err) {
+      alert("Could not leave club");
+    }
+  };
+
+  const cancelLeaveClub = () => {
+    setShowLeaveModal(false);
   };
 
   // handle delete club
@@ -139,7 +170,7 @@ const ClubDashboard: React.FC = () => {
           </button>
         ) : (
           <button
-            onClick={handleLeave}
+            onClick={handleLeaveClick}
             className="px-4 py-2 bg-orange-500 text-white rounded"
           >
             Leave Club
@@ -178,6 +209,15 @@ const ClubDashboard: React.FC = () => {
           </ul>
         )}
       </div>
+
+      {/* Custom confirmation modal */}
+      <ConfirmModal
+        show={showLeaveModal}
+        title="Leave Club"
+        message="Are you sure you want to leave this club?"
+        onConfirm={confirmLeaveClub}
+        onCancel={cancelLeaveClub}
+      />
     </div>
   );
 };

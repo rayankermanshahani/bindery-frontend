@@ -1,11 +1,13 @@
 // src/components/Profile.tsx
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useAuth } from "../context/AuthContext";
 import { User } from "../types/auth";
 import { Club } from "../types/club";
 
 const Profile: React.FC = () => {
+  const navigate = useNavigate();
   const { token, setUser } = useAuth();
   const [profile, setProfile] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -207,7 +209,11 @@ const Profile: React.FC = () => {
         ) : (
           <ul className="mt-2 list-disc list-inside">
             {createdClubs.map((club) => (
-              <li key={club.unique_id} className="text-gray-600">
+              <li
+                key={club.unique_id}
+                className="text-gray-600 cursor-pointer hover:underline"
+                onClick={() => navigate(`/clubs/${club.unique_id}`)}
+              >
                 {club.name}
               </li>
             ))}
