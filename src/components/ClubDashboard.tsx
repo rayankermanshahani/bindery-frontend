@@ -20,8 +20,11 @@ const ClubDashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // custom confirmation state
+  // custom confirmation states
   const [showLeaveModal, setShowLeaveModal] = useState<boolean>(false);
+  const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
+  const [showBanModal, setShowBanModal] = useState<boolean>(false);
+  const [memberToBan, setMemberToBan] = useState<Member | null>(null);
 
   const isCreator = creatorUsername === user?.username;
 
@@ -73,24 +76,8 @@ const ClubDashboard: React.FC = () => {
     }
   }, [token, unique_id]);
 
-  /*
-  const handleLeave = async () => {
-    if (!unique_id) return;
-    try {
-      await axios.post(
-        `${import.meta.env.VITE_API_URL}/clubs/${unique_id}/leave`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } },
-      );
-      alert("You left the club.");
-      navigate("/clubs");
-    } catch (err) {
-      alert("Could not leave club.");
-    }
-  };
-  */
   // handle leaving club
-  const handleLeaveClick = () => {
+  const handleLeave = () => {
     setShowLeaveModal(true);
   };
 
@@ -101,11 +88,12 @@ const ClubDashboard: React.FC = () => {
       await axios.post(
         `${import.meta.env.VITE_API_URL}/clubs/${unique_id}/leave`,
         {},
-        { headers: { Authorization: `Bearer  ${token}` } },
+        { headers: { Authorization: `Bearer ${token}` } },
       );
       alert("You left the club");
       navigate("/clubs");
     } catch (err) {
+      console.error(err);
       alert("Could not leave club");
     }
   };
@@ -114,22 +102,32 @@ const ClubDashboard: React.FC = () => {
     setShowLeaveModal(false);
   };
 
-  // handle delete club
+  // handle deleting club
   const handleDelete = async () => {
+    setShowDeleteModal(true);
+  };
+
+  const confirmDeleteClub = async () => {
+    setShowDeleteModal(false);
     if (!unique_id) return;
-    if (!window.confirm("Are you sure you want to delete this club?")) return;
     try {
       await axios.delete(`${import.meta.env.VITE_API_URL}/clubs/${unique_id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      alert("Club deleted.");
-      navigate("/clubs");
+      alert("Club deleted");
+      navigate("/home");
     } catch (err) {
-      alert("Could not delete club.");
+      console.error(err);
+      alert("Could not delete club");
     }
   };
 
+  const cancelDeleteClub = () => {
+    setShowDeleteModal(false);
+  };
+
   // handle ban user
+  /*
   const handleBan = async (member: Member) => {
     if (!unique_id) return;
     if (!window.confirm(`Ban ${member.username}?`)) return;
@@ -145,6 +143,34 @@ const ClubDashboard: React.FC = () => {
     } catch (err) {
       alert("Could not ban user.");
     }
+  };
+  */
+  const handleBan = (member: Member) => {
+    setMemberToBan(member);
+    setShowBanModal(true);
+  };
+
+  const confirmBan = async () => {
+    if (!unique_id || !memberToBan) return;
+    setShowBanModal(false);
+    try {
+      await axios.post(
+        `${import.meta.env.VITE_API_URL}/clubs/${unique_id}/ban`,
+        { user_id: memberToBan.id },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      alert(`User ${memberToBan.username} has been banned`);
+      setMemberToBan(null); // clear memberToBan state after action
+      fetchMembers(); // update member list
+    } catch (err) {
+      console.error(err);
+      alert("Could not ban user");
+    }
+  };
+
+  const cancelBan = () => {
+    setShowBanModal(false);
+    setMemberToBan(null);
   };
 
   if (loading) {
@@ -170,7 +196,7 @@ const ClubDashboard: React.FC = () => {
           </button>
         ) : (
           <button
-            onClick={handleLeaveClick}
+            onClick={handleLeave}
             className="px-4 py-2 bg-orange-500 text-white rounded"
           >
             Leave Club
@@ -210,13 +236,35 @@ const ClubDashboard: React.FC = () => {
         )}
       </div>
 
-      {/* Custom confirmation modal */}
+      {/* Custom confirmation modal for leaving club */}
       <ConfirmModal
         show={showLeaveModal}
         title="Leave Club"
         message="Are you sure you want to leave this club?"
         onConfirm={confirmLeaveClub}
         onCancel={cancelLeaveClub}
+      />
+
+      {/* Custom confirmation modal for deleting club */}
+      <ConfirmModal
+        show={showDeleteModal}
+        title="Delete Club"
+        message="Are you sure you want to delete this club?"
+        onConfirm={confirmDeleteClub}
+        onCancel={cancelDeleteClub}
+      />
+
+      {/* Custom confirmation modal for banning a member */}
+      <ConfirmModal
+        show={showBanModal}
+        title="Ban Member"
+        message={
+          memberToBan
+            ? `Are you sure you want to ban ${memberToBan.username}?`
+            : "Are you sure you want to ban this member?"
+        }
+        onConfirm={confirmBan}
+        onCancel={cancelBan}
       />
     </div>
   );
