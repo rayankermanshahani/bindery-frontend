@@ -1,24 +1,27 @@
 // src/components/Clubs.tsx
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useAuth } from "../context/AuthContext";
-import { Link } from "react-router-dom";
 import { Club } from "../types/club";
+import { Link } from "react-router-dom";
 
 const Clubs: React.FC = () => {
   const { token } = useAuth();
-  const [clubs, setClubs] = useState<Club[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
 
-  // create/join forms
+  // state for clubs
+  const [clubs, setClubs] = useState<Club[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  // state for creating/joining clubs
   const [creating, setCreating] = useState<boolean>(false);
   const [clubName, setClubName] = useState<string>("");
   const [joinId, setJoinId] = useState<string>("");
   const [joinError, setJoinError] = useState<string | null>(null);
 
   // fetch clubs
-  const fetchClubs = async () => {
+  const fetchMemberClubs = async () => {
     try {
       setLoading(true);
       const response = await axios.get(
@@ -28,9 +31,9 @@ const Clubs: React.FC = () => {
         },
       );
       setClubs(response.data);
-    } catch (err: any) {
-      console.error("Failed to fetch clubs:", err);
-      setError("Failed to load clubs.");
+    } catch (err) {
+      console.log("Error fetching member clubs:", err);
+      setError("Failed to fetch your clubs.");
     } finally {
       setLoading(false);
     }
@@ -38,11 +41,11 @@ const Clubs: React.FC = () => {
 
   useEffect(() => {
     if (token) {
-      fetchClubs();
+      fetchMemberClubs();
     }
   }, [token]);
 
-  // create new club
+  // handle create club
   const handleCreateClub = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!clubName.trim()) {
@@ -56,11 +59,10 @@ const Clubs: React.FC = () => {
         { name: clubName },
         { headers: { Authorization: `Bearer ${token}` } },
       );
-      alert("Club created! Unique ID: " + response.data.unique_id);
-
-      setClubName(""); // reset form
-      fetchClubs(); // refresh list
-    } catch (err: any) {
+      alert("Club created. Unique ID: " + response.data.unique_id);
+      setClubName("");
+      fetchMemberClubs();
+    } catch (err) {
       console.error("Failed to create club:", err);
       alert("Error creating club.");
     } finally {
@@ -68,14 +70,13 @@ const Clubs: React.FC = () => {
     }
   };
 
-  // join a club
+  // handle join club
   const handleJoinClub = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!joinId.trim()) {
       setJoinError("Please enter a valid club ID.");
       return;
     }
-
     try {
       setJoinError(null);
       await axios.post(
@@ -85,8 +86,7 @@ const Clubs: React.FC = () => {
       );
       alert("Joined the club!");
       setJoinId("");
-      // refresh list
-      fetchClubs();
+      fetchMemberClubs();
     } catch (err: any) {
       console.error("Failed to join club:", err);
       if (axios.isAxiosError(err) && err.response?.data?.error) {
@@ -97,23 +97,23 @@ const Clubs: React.FC = () => {
     }
   };
 
-  if (loading) {
-    return <div>Loading clubs...</div>;
-  }
-
-  if (error) {
-    return <div className="text-red-500">{error}</div>;
-  }
+  // handle id copying
+  const handleCopyId = (id: string) => {
+    navigator.clipboard.writeText(id);
+    setCopiedId(id);
+    setTimeout(() => {
+      setCopiedId(null);
+    }, 2000);
+  };
 
   return (
     <div className="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow space-y-6">
       <h2 className="text-2xl font-bold">New Clubs</h2>
-
       {/* Create club section */}
       <form onSubmit={handleCreateClub} className="flex items-center space-x-2">
         <input
           type="text"
-          placeholder="Enter New Club Name"
+          placeholder="Enter new club name"
           value={clubName}
           onChange={(e) => setClubName(e.target.value)}
           className="border px-2 py-1 rounded"
@@ -131,7 +131,7 @@ const Clubs: React.FC = () => {
       <form onSubmit={handleJoinClub} className="flex items-center space-x-2">
         <input
           type="text"
-          placeholder="Enter Club ID to join"
+          placeholder="Enter club ID to join"
           value={joinId}
           onChange={(e) => setJoinId(e.target.value)}
           className="border px-2 py-1 rounded"
@@ -145,11 +145,15 @@ const Clubs: React.FC = () => {
         {joinError && <p className="text-red-500 ml-4">{joinError}</p>}
       </form>
 
-      {/* Club list */}
-      <h2 className="text-2xl font-bold">Current Clubs</h2>
-      {clubs.length === 0 ? (
+      <h2 className="text-2xl font-bold">Your Clubs</h2>
+      {loading && <div>Loading your clubs...</div>}
+      {error && <div className="text-red-500">{error}</div>}
+
+      {!loading && !error && clubs.length === 0 && (
         <p className="text-gray-600">You are not part of any clubs yet.</p>
-      ) : (
+      )}
+
+      {!loading && !error && clubs.length > 0 && (
         <ul className="space-y-2">
           {clubs.map((club) => (
             <li
@@ -157,15 +161,43 @@ const Clubs: React.FC = () => {
               className="p-4 bg-gray-100 rounded flex justify-between"
             >
               <div>
-                <p>{club.name}</p>
+                <Link
+                  to={`/clubs/${club.unique_id}`}
+                  className="hover:underline"
+                >
+                  <p className="text-lg font-semibold">{club.name}</p>
+                </Link>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm text-gray-500">ID:</p>
+                  <span className="text-sm text-gray-500">
+                    {club.unique_id}
+                  </span>
+                  <button
+                    onClick={() => handleCopyId(club.unique_id)}
+                    className="p-1 text-gray-400 hover:text-gray-600 rounded"
+                    aria-label={`Copy ${club.unique_id}`}
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-4 w-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                      />
+                    </svg>
+                  </button>
+                  {copiedId === club.unique_id && (
+                    <span className="text-xs text-green-500">Copied!</span>
+                  )}
+                </div>
               </div>
-              {/* Link to detail/management page */}
-              <Link
-                to={`/clubs/${club.unique_id}`}
-                className="px-3 py-2 bg-blue-200 text-blue-900 rounded"
-              >
-                Manage
-              </Link>
+              {/* Possibly place a 'Leave' or 'Delete' button here if needed */}
             </li>
           ))}
         </ul>

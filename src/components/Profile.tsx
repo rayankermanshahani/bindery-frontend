@@ -146,7 +146,7 @@ const Profile: React.FC = () => {
 
   return (
     <div className="max-w-md mx-auto bg-white p-6 rounded-lg shadow">
-      <h2 className="text-2xl font-bold mb-4">Your Profile</h2>
+      <h2 className="text-2xl font-bold mb-4">Profile</h2>
 
       {/* Username */}
       <div className="mb-4">
@@ -202,7 +202,7 @@ const Profile: React.FC = () => {
 
       {/* Clubs Created */}
       <div className="mb-4">
-        <strong>Clubs Created:</strong>
+        <strong>Clubs You Have Created:</strong>
         {clubsError && <p className="text-red-500">{clubsError}</p>}
         {createdClubs.length === 0 ? (
           <p className="text-gray-600">You haven't created any clubs yet.</p>
