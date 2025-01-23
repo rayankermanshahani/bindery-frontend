@@ -4,15 +4,17 @@ import axios from "axios";
 import { useAuth } from "../context/AuthContext";
 import { Club } from "../types/club";
 import { Link } from "react-router-dom";
+import { useClipboard } from "../hooks/useClipBoard";
 
 const Clubs: React.FC = () => {
+  // custom states
   const { token } = useAuth();
+  const { copy, copiedValue } = useClipboard();
 
   // state for clubs
   const [clubs, setClubs] = useState<Club[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   // state for creating/joining clubs
   const [creating, setCreating] = useState<boolean>(false);
@@ -97,15 +99,6 @@ const Clubs: React.FC = () => {
     }
   };
 
-  // handle id copying
-  const handleCopyId = (id: string) => {
-    navigator.clipboard.writeText(id);
-    setCopiedId(id);
-    setTimeout(() => {
-      setCopiedId(null);
-    }, 2000);
-  };
-
   return (
     <div className="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow space-y-6">
       <h2 className="text-2xl font-bold">New Clubs</h2>
@@ -173,7 +166,7 @@ const Clubs: React.FC = () => {
                     {club.unique_id}
                   </span>
                   <button
-                    onClick={() => handleCopyId(club.unique_id)}
+                    onClick={() => copy(club.unique_id)}
                     className="p-1 text-gray-400 hover:text-gray-600 rounded"
                     aria-label={`Copy ${club.unique_id}`}
                   >
@@ -192,7 +185,7 @@ const Clubs: React.FC = () => {
                       />
                     </svg>
                   </button>
-                  {copiedId === club.unique_id && (
+                  {copiedValue === club.unique_id && (
                     <span className="text-xs text-green-500">Copied!</span>
                   )}
                 </div>

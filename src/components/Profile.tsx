@@ -202,7 +202,7 @@ const Profile: React.FC = () => {
 
       {/* Clubs Created */}
       <div className="mb-4">
-        <strong>Clubs You Have Created:</strong>
+        <strong>Clubs Created:</strong>
         {clubsError && <p className="text-red-500">{clubsError}</p>}
         {createdClubs.length === 0 ? (
           <p className="text-gray-600">You haven't created any clubs yet.</p>

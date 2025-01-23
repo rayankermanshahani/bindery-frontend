@@ -1,6 +1,6 @@
-// src/components/PrivateRoute.tsx
+// src/components/routes/PrivateRoute.tsx
 import React from "react";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../../context/AuthContext";
 import { Navigate } from "react-router-dom";
 
 const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({

@@ -7,13 +7,11 @@ import {
   Navigate,
 } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
-import Layout from "./components/Layout/Layout";
+import Layout from "./components/layout/Layout";
 import Login from "./components/Login";
 import Profile from "./components/Profile";
-import Home from "./components/Home";
-import DefaultRoute from "./components/DefaultRoute";
-import PublicRoute from "./components/PublicRoute";
-import PrivateRoute from "./components/PrivateRoute";
+import PublicRoute from "./components/routes/PublicRoute";
+import PrivateRoute from "./components/routes/PrivateRoute";
 import Clubs from "./components/Clubs";
 import ClubDashboard from "./components/ClubDashboard";
 
@@ -22,10 +20,10 @@ const App: React.FC = () => {
     <AuthProvider>
       <Router>
         <Routes>
-          {/* Default Route */}
-          <Route path="/" element={<DefaultRoute />} />
+          {/* Root path: redirects to /clubs. PrivateRoute on /clubs handles redirection to /login */}
+          <Route path="/" element={<Navigate to="/clubs" replace />} />
 
-          {/* Login Route */}
+          {/* Login Route (Public) */}
           <Route
             path="/login"
             element={
@@ -35,31 +33,7 @@ const App: React.FC = () => {
             }
           />
 
-          {/* Home Route */}
-          <Route
-            path="/home"
-            element={
-              <PrivateRoute>
-                <Layout>
-                  <Home />
-                </Layout>
-              </PrivateRoute>
-            }
-          />
-
-          {/* Profile Route */}
-          <Route
-            path="/profile"
-            element={
-              <PrivateRoute>
-                <Layout>
-                  <Profile />
-                </Layout>
-              </PrivateRoute>
-            }
-          />
-
-          {/* Clubs Route */}
+          {/* Clubs List (Private) */}
           <Route
             path="/clubs"
             element={
@@ -70,6 +44,8 @@ const App: React.FC = () => {
               </PrivateRoute>
             }
           />
+
+          {/* Single Club Dashboard (Private) */}
           <Route
             path="/clubs/:unique_id"
             element={
@@ -81,7 +57,19 @@ const App: React.FC = () => {
             }
           />
 
-          {/* Catch-All Route */}
+          {/* Profile (Private) */}
+          <Route
+            path="/profile"
+            element={
+              <PrivateRoute>
+                <Layout>
+                  <Profile />
+                </Layout>
+              </PrivateRoute>
+            }
+          />
+
+          {/* Catch-all -> go to "/" which redirects to "/clubs" or "/login"  */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Router>

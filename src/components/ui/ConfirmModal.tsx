@@ -1,4 +1,4 @@
-// src/components/ConfirmModal.tsx
+// src/components/ui/ConfirmModal.tsx
 import React from "react";
 
 interface ConfirmModalProps {

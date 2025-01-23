@@ -4,13 +4,16 @@ import axios from "axios";
 import { useAuth } from "../context/AuthContext";
 import { useParams, useNavigate } from "react-router-dom";
 import { Member } from "../types/club";
-import ConfirmModal from "./ConfirmModal";
+import ConfirmModal from "./ui/ConfirmModal";
+import { useClipboard } from "../hooks/useClipBoard";
 
 const ClubDashboard: React.FC = () => {
-  // auth state
+  const navigate = useNavigate();
+
+  // custom states
   const { token, user } = useAuth();
   const { unique_id } = useParams(); // from the route /clubs/:unique_id
-  const navigate = useNavigate();
+  const { copy, copiedValue } = useClipboard(); //
 
   // club state
   const [creatorId, setCreatorId] = useState<number | null>(null);
@@ -19,9 +22,8 @@ const ClubDashboard: React.FC = () => {
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  // custom confirmation states
+  // confirmation states
   const [showLeaveModal, setShowLeaveModal] = useState<boolean>(false);
   const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
   const [showBanModal, setShowBanModal] = useState<boolean>(false);
@@ -164,15 +166,6 @@ const ClubDashboard: React.FC = () => {
     return <div className="text-red-500">{error}</div>;
   }
 
-  // handle id copying button
-  const handleCopyId = (id: string) => {
-    navigator.clipboard.writeText(id);
-    setCopiedId(id);
-    setTimeout(() => {
-      setCopiedId(null);
-    }, 2000);
-  };
-
   return (
     <div className="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow space-y-6">
       <h2 className="text-2xl font-bold">{clubName}</h2>
@@ -182,7 +175,7 @@ const ClubDashboard: React.FC = () => {
         <p className="text-sm text-gray-500">ID:</p>
         <span className="text-sm text-gray-500">{unique_id}</span>
         <button
-          onClick={() => handleCopyId(unique_id)}
+          onClick={() => copy(unique_id!)}
           className="p-1 text-gray-400 hover:text-gray-600 rounded"
           aria-label={`Copy ${unique_id}`}
         >
@@ -201,7 +194,7 @@ const ClubDashboard: React.FC = () => {
             />
           </svg>
         </button>
-        {copiedId === unique_id && (
+        {copiedValue === unique_id && (
           <span className="text-xs text-green-500">Copied!</span>
         )}
       </div>
