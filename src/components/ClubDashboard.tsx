@@ -1,19 +1,21 @@
 // src/components/ClubDashboard.tsx
 import React, { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useAuth } from "../context/AuthContext";
-import { useParams, useNavigate } from "react-router-dom";
 import { Member } from "../types/club";
-import ConfirmModal from "./ui/ConfirmModal";
+import { Book } from "../types/book";
 import { useClipboard } from "../hooks/useClipBoard";
+import ConfirmModal from "./ui/ConfirmModal";
+import ClubBooks from "./ClubBooks";
+import BookDiscussion from "./BookDiscussion";
 
 const ClubDashboard: React.FC = () => {
   const navigate = useNavigate();
-
-  // custom states
+  // general state
   const { token, user } = useAuth();
-  const { unique_id } = useParams(); // from the route /clubs/:unique_id
-  const { copy, copiedValue } = useClipboard(); //
+  const { unique_id } = useParams();
+  const { copy, copiedValue } = useClipboard();
 
   // club state
   const [creatorId, setCreatorId] = useState<number | null>(null);
@@ -22,8 +24,9 @@ const ClubDashboard: React.FC = () => {
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedBook, setSelectedBook] = useState<Book | null>(null);
 
-  // confirmation states
+  // confirmation modals
   const [showLeaveModal, setShowLeaveModal] = useState<boolean>(false);
   const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
   const [showBanModal, setShowBanModal] = useState<boolean>(false);
@@ -34,7 +37,6 @@ const ClubDashboard: React.FC = () => {
   // fetch members
   const fetchMembers = async () => {
     try {
-      setLoading(true);
       const res = await axios.get(
         `${import.meta.env.VITE_API_URL}/clubs/${unique_id}/members`,
         {
@@ -45,22 +47,18 @@ const ClubDashboard: React.FC = () => {
     } catch (err: any) {
       console.error(err);
       setError("Failed to fetch club details.");
-    } finally {
-      setLoading(false);
     }
   };
 
   // fetch club information
   const fetchClubInfo = async () => {
     try {
-      setLoading(true);
       const clubRes = await axios.get(
         `${import.meta.env.VITE_API_URL}/clubs/${unique_id}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         },
       );
-      // response include { unique_id, creator_username, name, created_at }
       setCreatorId(clubRes.data.creator_id);
       setCreatorUsername(clubRes.data.creator_username);
       setClubName(clubRes.data.name);
@@ -79,11 +77,9 @@ const ClubDashboard: React.FC = () => {
     }
   }, [token, unique_id]);
 
-  // handle leaving club
   const handleLeave = () => {
     setShowLeaveModal(true);
   };
-
   const confirmLeaveClub = async () => {
     setShowLeaveModal(false);
     if (!unique_id) return;
@@ -100,16 +96,9 @@ const ClubDashboard: React.FC = () => {
       alert("Could not leave club");
     }
   };
+  const cancelLeaveClub = () => setShowLeaveModal(false);
 
-  const cancelLeaveClub = () => {
-    setShowLeaveModal(false);
-  };
-
-  // handle deleting club
-  const handleDelete = async () => {
-    setShowDeleteModal(true);
-  };
-
+  const handleDelete = async () => setShowDeleteModal(true);
   const confirmDeleteClub = async () => {
     setShowDeleteModal(false);
     if (!unique_id) return;
@@ -118,23 +107,19 @@ const ClubDashboard: React.FC = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       alert("Club deleted");
-      navigate("/home");
+      navigate("/clubs");
     } catch (err) {
       console.error(err);
       alert("Could not delete club");
     }
   };
+  const cancelDeleteClub = () => setShowDeleteModal(false);
 
-  const cancelDeleteClub = () => {
-    setShowDeleteModal(false);
-  };
-
-  // handle ban user
+  // handle user banning
   const handleBan = (member: Member) => {
     setMemberToBan(member);
     setShowBanModal(true);
   };
-
   const confirmBan = async () => {
     if (!unique_id || !memberToBan) return;
     setShowBanModal(false);
@@ -145,31 +130,32 @@ const ClubDashboard: React.FC = () => {
         { headers: { Authorization: `Bearer ${token}` } },
       );
       alert(`User ${memberToBan.username} has been banned`);
-      setMemberToBan(null); // clear memberToBan state after action
-      fetchMembers(); // update member list
+      setMemberToBan(null);
+      fetchMembers();
     } catch (err) {
       console.error(err);
       alert("Could not ban user");
     }
   };
-
   const cancelBan = () => {
     setShowBanModal(false);
     setMemberToBan(null);
   };
 
-  if (loading) {
-    return <div>Loading club...</div>;
-  }
+  const onSelectBook = (book: Book) => {
+    setSelectedBook(book);
+  };
 
-  if (error) {
-    return <div className="text-red-500">{error}</div>;
-  }
+  const closeDiscussion = () => {
+    setSelectedBook(null);
+  };
+
+  if (loading) return <div>Loading club...</div>;
+  if (error) return <div className="text-red-500">{error}</div>;
 
   return (
     <div className="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow space-y-6">
       <h2 className="text-2xl font-bold">{clubName}</h2>
-      {/*<p className="text-gray-600">Club ID: {unique_id}</p> */}
       <p className="text-gray-600">Creator: {creatorUsername}</p>
       <div className="flex items-center gap-2">
         <p className="text-sm text-gray-500">ID:</p>
@@ -223,10 +209,11 @@ const ClubDashboard: React.FC = () => {
         </button>
       </div>
 
+      {/* Show the membership list */}
       <div className="mt-4">
         <h3 className="text-xl font-semibold">Members</h3>
         {members.length === 0 ? (
-          <p>No members (strange!).</p>
+          <p>No members yet.</p>
         ) : (
           <ul className="space-y-2 mt-2">
             {members.map((m) => (
@@ -249,7 +236,10 @@ const ClubDashboard: React.FC = () => {
         )}
       </div>
 
-      {/* Custom confirmation modal for leaving club */}
+      {/* Show the books section */}
+      <ClubBooks isCreator={isCreator} onSelectBook={onSelectBook} />
+
+      {/* Confirmation modals for leaving, deleting, banning */}
       <ConfirmModal
         show={showLeaveModal}
         title="Leave Club"
@@ -257,8 +247,6 @@ const ClubDashboard: React.FC = () => {
         onConfirm={confirmLeaveClub}
         onCancel={cancelLeaveClub}
       />
-
-      {/* Custom confirmation modal for deleting club */}
       <ConfirmModal
         show={showDeleteModal}
         title="Delete Club"
@@ -266,8 +254,6 @@ const ClubDashboard: React.FC = () => {
         onConfirm={confirmDeleteClub}
         onCancel={cancelDeleteClub}
       />
-
-      {/* Custom confirmation modal for banning a member */}
       <ConfirmModal
         show={showBanModal}
         title="Ban Member"
@@ -279,6 +265,11 @@ const ClubDashboard: React.FC = () => {
         onConfirm={confirmBan}
         onCancel={cancelBan}
       />
+
+      {/* Book discussion modal, if we have a selectedBook */}
+      {selectedBook && (
+        <BookDiscussion book={selectedBook} onClose={closeDiscussion} />
+      )}
     </div>
   );
 };
